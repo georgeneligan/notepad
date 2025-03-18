@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rewards</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Josefin+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+      rel="stylesheet" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+        background-color: #222;
+        color: white;
+      }
+      .editor {
+        width: 80%;
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+        background: #333;
+        border-radius: 10px;
+        min-height: 400px;
+        border: 1px solid #555;
+        cursor: text;
+        outline: none;
+        font-size: 40px;
+        font-family: "Josefin Sans", sans-serif;
+        font-optical-sizing: auto;
+      }
+      .editor img {
+        width: 250px;
+        height: auto;
+        border-radius: 10px;
+        margin: 5px 0;
+      }
+      .small-icon {
+        width: 50px !important; /* სურათის ფიქსირებული სიგანე */
+        height: 50px !important; /* სურათის ფიქსირებული სიმაღლე */
+        margin-left: 10px !important;
+        vertical-align: middle;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>People</h2>
+    <div class="editor" contenteditable="true"></div>
+    <script>
+      const editor = document.querySelector(".editor");
+
+      // სურათის ჩასმა (1-ხელადი)
+      editor.addEventListener("paste", async (event) => {
+        event.preventDefault();
+        const clipboardItems = event.clipboardData.items;
+        let imageProcessed = false;
+
+        for (let item of clipboardItems) {
+          if (item.type.startsWith("image/") && !imageProcessed) {
+            imageProcessed = true;
+            const blob = item.getAsFile();
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+              const img = document.createElement("img");
+              img.src = e.target.result;
+              editor.appendChild(img);
+            };
+
+            reader.readAsDataURL(blob);
+          } else if (item.type === "text/plain") {
+            item.getAsString((text) => {
+              const textNode = document.createTextNode(text);
+              editor.appendChild(textNode);
+            });
+          }
+        }
+      });
+
+      // ენთერზე დაჭერის მოვლენა (სტატიკური სურათის დამატება)
+      editor.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+
+          let lastElement = editor.lastChild;
+
+          // თუ ბოლო ელემენტი არის ტექსტი და არ არის ცარიელი
+          if (
+            lastElement &&
+            lastElement.nodeType === 3 &&
+            lastElement.nodeValue.trim() !== ""
+          ) {
+            const img = document.createElement("img");
+            img.src = "./valut.png"; // შენი სტატიკური ფოტო
+            img.className = "small-icon"; // ფიქსირებული ზომა: 50x50px
+            editor.appendChild(img);
+          }
+
+          // ახალი პარაგრაფის შექმნა და ფოკუსის გადატანა
+          const newParagraph = document.createElement("div");
+          newParagraph.innerHTML = "<br>"; // ვიზუალური ახალი ხაზი
+          editor.appendChild(newParagraph);
+
+          // კურსორის ავტომატურად გადატანა ახალ ხაზზე
+          const range = document.createRange();
+          const selection = window.getSelection();
+          range.setStart(newParagraph, 0);
+          range.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(range);
+        }
+      });
+    </script>
+  </body>
+</html>
